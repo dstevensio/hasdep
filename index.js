@@ -8,6 +8,7 @@ const Semver = require("semver");
 const Chalk = require("chalk");
 
 let Config;
+let neg = false;
 
 try {
   // Check for local config
@@ -66,6 +67,10 @@ const definition = {
   v: {
     description: "Specific version of the dependency to check for (based on npm semver comparison)",
     alias: "version"
+  },
+  n: {
+    alias: "negative",
+    description: "<full|dev|any> List out repositories that do not have the specified dependency as a full dep, a dev dep, or either"
   }
 };
 
@@ -100,11 +105,15 @@ const searchRepo = (args) => {
 
 const checkDeps = (depsObj, dep, version, cb) => {
 
+  let matches = 0;
+
   Object.keys(depsObj).map((dependencyName) => {
 
     if (dependencyName !== dep) {
       return;
     }
+
+    ++matches;
 
     let color = "yellow";
     let info = "";
@@ -125,10 +134,25 @@ const checkDeps = (depsObj, dep, version, cb) => {
 
   });
 
+  if (!matches) {
+    cb(null);
+  }
 };
 
 const logResult = (org, repo, result, isDev) => {
+  if (neg) {
+    return;
+  }
+
   console.log(Chalk.cyan(`${org}/${repo} has `) + result + (isDev ? Chalk.gray(" [DEV DEPENDENCY]") : ""));
+};
+
+const logNegative = (org, repo, dep, isDev) => {
+  if (!neg || neg === "full" && isDev || neg === "dev" && !isDev) {
+    return;
+  }
+
+  console.log(Chalk.yellow(`${org}/${repo} does not have ${dep} as a ` + (isDev ? "devDependency" : "dependency")));
 };
 
 const searchWithinRepo = (org, repo, dep, version) => {
@@ -159,11 +183,23 @@ const searchWithinRepo = (org, repo, dep, version) => {
       const pkg = JSON.parse(contentToString(response.content));
 
       if (pkg.dependencies) {
-        checkDeps(pkg.dependencies, dep, version, (result) => logResult(org, repo, result));
+        checkDeps(pkg.dependencies, dep, version, (result) => {
+          if (!result) {
+            logNegative(org, repo, dep);
+          } else {
+            logResult(org, repo, result);
+          }
+        });
       }
 
       if (pkg.devDependencies) {
-        checkDeps(pkg.devDependencies, dep, version, (result) => logResult(org, repo, result, true));
+        checkDeps(pkg.devDependencies, dep, version, (result) => {
+          if (!result) {
+            logNegative(org, repo, dep, true);
+          } else {
+            logResult(org, repo, result, true);
+          }
+        });
       }
 
     } catch (err) {
@@ -218,6 +254,8 @@ if (args.v && !Semver.valid(args.v)) {
 }
 
 const processArgs = () => {
+  neg = args.n;
+
   if (args.r) {
     return searchRepo(args);
   }
