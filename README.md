@@ -22,9 +22,11 @@ Save it and source your bash file before trying to continue.
 
 ##Setup
 
-Copy the supplied `config.default.json` to `config.json`
+Copy the supplied `config.default.json` to `~/hasdep-config.json`. This file
+will be used whenever a local `hasdep-config.json` is not present. If you wish to perform a search with different
+settings, run `hasdep` from a directory which contains a `hasdep-config.json` with those settings.
 
-`cp config.default.json config.json`
+`cp config.default.json ~/hasdep-config.json`
 
 If you're searching Github.com, you're good to proceed.
 

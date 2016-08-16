@@ -1,5 +1,8 @@
 "use strict";
 
+const Fs = require("fs");
+const Os = require("os");
+const Path = require("path");
 const Bossy = require("bossy");
 const Semver = require("semver");
 const Chalk = require("chalk");
@@ -7,14 +10,45 @@ const Chalk = require("chalk");
 let Config;
 
 try {
-  Config = require("./config.json");
+  // Check for local config
+  let configFilePath = Path.join(process.cwd(), "hasdep-config.json");
+  Fs.stat(configFilePath, (err, stats) => {
+    if (err) {
+      // Fallback to Global config, if present
+      configFilePath = Path.join(Os.homedir(), "hasdep-config.json");
+      Fs.stat(configFilePath, (err, stats) => {
+        if (err) {
+          console.log(Chalk.red("Couldn't load config file at ./hasdep-config.json (project specific) or global ~/hasdep-config.json - create one based on https://github.com/shakefon/hasdep/blob/master/config.default.json"));
+          throw err;
+        }
+
+        console.log(Chalk.bgMagenta("Using global hasdep config file in homedir"));
+        Config = JSON.parse(Fs.readFileSync(configFilePath));
+
+        main();
+
+      });
+      return;
+    }
+
+    console.log(Chalk.bgMagenta("Using local project hasdep config file"));
+    Config = JSON.parse(Fs.readFileSync(configFilePath));
+
+    main();
+
+  });
+
 } catch (err) {
-  console.log(Chalk.red("Couldn't load config file at ./config.json - create it based on ./config.default.json"));
   throw err;
 }
 
 const GitHubApi = require("github");
-const github = new GitHubApi(Config.githubApi);
+let github;
+
+const main = () => {
+  github = new GitHubApi(Config.githubApi);
+  processArgs();
+};
 
 const definition = {
   o: {
@@ -183,9 +217,11 @@ if (args.v && !Semver.valid(args.v)) {
   return;
 }
 
-if (args.r) {
-  return searchRepo(args);
-}
+const processArgs = () => {
+  if (args.r) {
+    return searchRepo(args);
+  }
 
-searchOrg(args);
+  searchOrg(args);
+};
 
