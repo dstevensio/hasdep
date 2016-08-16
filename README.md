@@ -20,6 +20,24 @@ Save it and source your bash file before trying to continue.
 
 `npm install hasdep -g`
 
+##Setup
+
+Copy the supplied `config.default.json` to `config.json`
+
+`cp config.default.json config.json`
+
+If you're searching Github.com, you're good to proceed.
+
+If you're searching an internal github instance, change `host` to the correct domain. E.g. if your
+Github instance is at `https://github02.acme-anvils.com` you would set:
+
+`host: "github02.acme-anvils.com",`
+
+in `config.json`.
+
+You probably don't want to accidentally commit that value to a public repo, which is why `config.json`
+is in `.gitignore`. Information Leakage is a genuine security threat, folks.
+
 ##Usage
 
 ###Options
