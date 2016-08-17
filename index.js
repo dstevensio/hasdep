@@ -176,7 +176,12 @@ const searchOrg = (args) => {
     per_page: 100
   }, (err, response) => {
     if (err) {
-      throw err;
+      console.log(err);
+      if (err.code !== 404) {
+        throw err;
+      }
+
+      return;
     }
 
     response.forEach((repo) => {

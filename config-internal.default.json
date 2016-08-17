@@ -2,7 +2,7 @@
   "githubApi": {
     "version": "3.0.0",
     "protocol": "https",
-    "host": "api.github.com",
+    "host": "yourgithub.com",
     "pathPrefix": "/api/v3"
   }
 }
