@@ -10,46 +10,10 @@ const Chalk = require("chalk");
 let Config;
 let neg = false;
 
-try {
-  // Check for local config
-  let configFilePath = Path.join(process.cwd(), "hasdep-config.json");
-  Fs.stat(configFilePath, (err, stats) => {
-    if (err) {
-      // Fallback to Global config, if present
-      configFilePath = Path.join(Os.homedir(), "hasdep-config.json");
-      Fs.stat(configFilePath, (err, stats) => {
-        if (err) {
-          console.log(Chalk.red("Couldn't load config file at ./hasdep-config.json (project specific) or global ~/hasdep-config.json - create one based on https://github.com/shakefon/hasdep/blob/master/config.default.json"));
-          throw err;
-        }
-
-        console.log(Chalk.bgMagenta("Using global hasdep config file in homedir"));
-        Config = JSON.parse(Fs.readFileSync(configFilePath));
-
-        main();
-
-      });
-      return;
-    }
-
-    console.log(Chalk.bgMagenta("Using local project hasdep config file"));
-    Config = JSON.parse(Fs.readFileSync(configFilePath));
-
-    main();
-
-  });
-
-} catch (err) {
-  throw err;
-}
-
 const GitHubApi = require("github");
 let github;
-
-const main = () => {
-  github = new GitHubApi(Config.githubApi);
-  processArgs();
-};
+let token = "";
+let ghAuth = {};
 
 const definition = {
   o: {
@@ -72,19 +36,6 @@ const definition = {
     alias: "negative",
     description: "<full|dev|any> List out repositories that do not have the specified dependency as a full dep, a dev dep, or either"
   }
-};
-
-const token = process.env.GHACCESS_TOKEN;
-
-if (!token) {
-  console.log(Chalk.red("A Github Access Token is required for hasdep to work"));
-  console.log(Chalk.yellow("Please set the environment variable GHACCESS_TOKEN to your access token"));
-  return;
-}
-
-const ghAuth = {
-  type: "oauth",
-  token
 };
 
 const contentToString = (base64encodedString) =>
@@ -262,4 +213,58 @@ const processArgs = () => {
 
   searchOrg(args);
 };
+
+const main = () => {
+  github = new GitHubApi(Config.githubApi);
+
+  token = process.env[Config.token_env_name || "GHACCESS_TOKEN"];
+
+  if (!token) {
+    console.log(Chalk.red("A Github Access Token is required for hasdep to work"));
+    console.log(Chalk.yellow("Please set the environment variable GHACCESS_TOKEN to your access token"));
+    console.log(Chalk.yellow("For additional tokens, set an env variable with token value and add variable name to config token_env_name"));
+    return;
+  }
+
+  ghAuth = {
+    type: "oauth",
+    token
+  };
+
+  processArgs();
+
+};
+
+try {
+  // Check for local config
+  let configFilePath = Path.join(process.cwd(), "hasdep-config.json");
+  Fs.stat(configFilePath, (err, stats) => {
+    if (err) {
+      // Fallback to Global config, if present
+      configFilePath = Path.join(Os.homedir(), "hasdep-config.json");
+      Fs.stat(configFilePath, (err, stats) => {
+        if (err) {
+          console.log(Chalk.red("Couldn't load config file at ./hasdep-config.json (project specific) or global ~/hasdep-config.json - create one based on https://github.com/shakefon/hasdep/blob/master/config.default.json"));
+          throw err;
+        }
+
+        console.log(Chalk.bgMagenta("Using global hasdep config file in homedir"));
+        Config = JSON.parse(Fs.readFileSync(configFilePath));
+
+        main();
+
+      });
+      return;
+    }
+
+    console.log(Chalk.bgMagenta("Using local project hasdep config file"));
+    Config = JSON.parse(Fs.readFileSync(configFilePath));
+
+    main();
+
+  });
+
+} catch (err) {
+  throw err;
+}
 
