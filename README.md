@@ -49,6 +49,7 @@ is in `.gitignore`. Information Leakage is a genuine security threat, folks.
 -r Repository to search in
 -d Dependency to look for (name that appears in the module's package.json name field)
 -v Specific Version to check for (will check based on npm SemVer comparison)
+-n Negative search. Valid values: "any" (search dependencies and devDependencies), "full" (search only dependencies), "dev" (search only devDependencies)
 ```
 
 ###Examples
