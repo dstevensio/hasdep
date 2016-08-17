@@ -1,6 +1,6 @@
 {
   "name": "hasdep",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Check for a dependency (and version) across a Github Org or specific repo",
   "main": "index.js",
   "scripts": {
