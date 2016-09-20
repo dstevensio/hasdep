@@ -171,10 +171,7 @@ const searchOrg = (args) => {
 
   github.authenticate(ghAuth);
 
-  github.repos.getForUser({
-    user: org,
-    per_page: 100
-  }, (err, response) => {
+  const handleRepos = (err, response) => {
     if (err) {
       console.log(err);
       if (err.code !== 404) {
@@ -188,7 +185,15 @@ const searchOrg = (args) => {
       searchWithinRepo(org, repo.name, dep, version);
     });
 
-  });
+    if (github.hasNextPage(response)) {
+      github.getNextPage(response, handleRepos);
+    }
+  };
+
+  github.repos.getForUser({
+    user: org,
+    per_page: 100
+  }, handleRepos);
 
 };
 
