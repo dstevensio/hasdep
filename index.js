@@ -253,7 +253,7 @@ try {
           throw err;
         }
 
-        console.log(Chalk.bgMagenta("Using global hasdep config file in homedir"));
+        console.log(Chalk.bgMagenta(Chalk.white("Using global hasdep config file in homedir")));
         Config = JSON.parse(Fs.readFileSync(configFilePath));
 
         main();
@@ -262,7 +262,7 @@ try {
       return;
     }
 
-    console.log(Chalk.bgMagenta("Using local project hasdep config file"));
+    console.log(Chalk.bgMagenta(Chalk.white("Using local project hasdep config file")));
     Config = JSON.parse(Fs.readFileSync(configFilePath));
 
     main();
